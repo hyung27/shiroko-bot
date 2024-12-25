@@ -1,0 +1,51 @@
+{
+  "name": "shiroko-bot",
+  "version": "1.0.0",
+  "description": "Shiroko WhatsApp Bot",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node dist/index.js --max-old-space-size=8192",
+    "check": "prettier . --check",
+    "write": "prettier . --write",
+    "pm2": "pm2 start index.js --name shiroko --max-memory-restart 8G -- --max-old-space-size=8192"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyung27/shiroko-bot.git"
+  },
+  "keywords": [
+    "shiroko-bot",
+    "multi-device",
+    "whatsapp-api",
+    "whatsapp-bot"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hyung27/shiroko-bot/issues"
+  },
+  "homepage": "https://github.com/hyung27/shiroko-bot#readme",
+  "dependencies": {
+    "@whiskeysockets/baileys": "latest",
+    "awesome-phonenumber": "^7.2.0",
+    "cfonts": "^3.3.0",
+    "chalk": "^5.3.0",
+    "child_process": "^1.0.2",
+    "file-type": "^18.5.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "form-data": "^4.0.1",
+    "moment-timezone": "^0.5.43",
+    "mongoose": "^7.3.4",
+    "node-fetch": "^3.3.2",
+    "node-webpmux": "^3.1.7",
+    "pm2": "^5.4.3"
+  },
+  "devDependencies": {
+    "@adiwajshing/keyed-db": "^0.2.4",
+    "axios": "^1.4.0",
+    "jimp": "^0.16.13",
+    "link-preview-js": "^3.0.4",
+    "qrcode-terminal": "0.12.0"
+  }
+}

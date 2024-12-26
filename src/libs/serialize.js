@@ -1,4 +1,4 @@
-import { areJidsSameUser, extractMessageContent, getDevice } from "@whiskeysockets/baileys";
+import { areJidsSameUser, extractMessageContent, getDevice, downloadContentFromMessage } from "baileys";
 import fs from "fs";
 import config from "../settings/config.js";
 import message from "../settings/message.js";
@@ -75,8 +75,8 @@ export async function Serialize(sock, msg) {
             (typeof msg.messageTimestamp === "number"
                 ? msg.messageTimestamp
                 : msg.messageTimestamp.low
-                  ? msg.messageTimestamp.low
-                  : msg.messageTimestamp.high) || m.msg.timestampMs * 1000;
+                    ? msg.messageTimestamp.low
+                    : msg.messageTimestamp.high) || m.msg.timestampMs * 1000;
         m.isMedia = !!m.msg?.mimetype || !!m.msg?.thumbnailDirectPath;
         if (m.isMedia) {
             m.mime = m.msg?.mimetype;
@@ -207,6 +207,29 @@ export async function Serialize(sock, msg) {
                 if (filepath) return sock.downloadMediaMessage(m.quoted, filepath);
                 else return sock.downloadMediaMessage(m.quoted);
             };
+        }
+    }
+
+    m.dl = async () => {
+        try {
+            const Media = m.isQuoted ? m.quoted.msg.url : m.msg.url;
+            const MediaKey = m.isQuoted ? m.quoted.msg.mediaKey : m.msg.mediaKey;
+            const MediaType = m.isQuoted ? /image/i.test(m.quoted.msg.mimetype) ? "image" : /webp/i.test(m.quoted.msg.mimetype) ? "image" : "video" : /image/i.test(m.msg.mimetype) ? "image" : /webp/i.test(m.msg.mimetype) ? "image" : "video";
+
+            const dl = await downloadContentFromMessage({url: Media, mediaKey: MediaKey}, MediaType);
+            let buffer = Buffer.from([])
+            for await (const chunk of dl) {
+                buffer = Buffer.concat([buffer, chunk])
+            }
+            
+            return {
+                type: MediaType.toUpperCase(),
+                buffer,
+                mimetype: m?.quoted?.msg?.mimetype || m?.msg?.mimetype || "unknown"
+            };
+        } catch (error) {
+            console.log(error)
+            return null;
         }
     }
 

@@ -10,8 +10,8 @@ import cheerio from "cheerio";
 import FormData from "form-data";
 
 async function imageToWebp(media) {
-    const tmpFileOut = path.join(process.cwd(), "dist/temps", `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`);
-    const tmpFileIn = path.join(process.cwd(), "dist/temps", `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.jpg`);
+    const tmpFileOut = path.join(process.cwd(), "src/temps", `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`);
+    const tmpFileIn = path.join(process.cwd(), "src/temps", `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.jpg`);
 
     fs.writeFileSync(tmpFileIn, media);
 
@@ -37,8 +37,8 @@ async function imageToWebp(media) {
 }
 
 async function videoToWebp(media) {
-    const tmpFileOut = path.join(process.cwd(), "dist/temps", `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`);
-    const tmpFileIn = path.join(process.cwd(), "dist/temps", `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.mp4`);
+    const tmpFileOut = path.join(process.cwd(), "src/temps", `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`);
+    const tmpFileIn = path.join(process.cwd(), "src/temps", `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.mp4`);
 
     fs.writeFileSync(tmpFileIn, media);
 
@@ -83,15 +83,15 @@ async function writeExif(media, metadata) {
           : /video/.test(media.mimetype)
             ? await videoToWebp(media.data)
             : "";
-    const tmpFileOut = path.join(process.cwd(), "dist/temps", `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`);
-    const tmpFileIn = path.join(process.cwd(), "dist/temps", `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(30)}.webp`);
+    const tmpFileOut = path.join(process.cwd(), "src/temps", `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`);
+    const tmpFileIn = path.join(process.cwd(), "src/temps", `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(30)}.webp`);
     fs.writeFileSync(tmpFileIn, wMedia);
-    if (Object.keys(metadata).length != 0 || Object.keys(config?.exif).length != 0) {
+    if (Object.keys(metadata || "{}").length != 0 || Object.keys(config?.exif).length != 0) {
         const img = new webp.Image();
         let opt = {
             packId: metadata?.packId ? metadata.packId : config?.exif?.packId,
-            packName: metadata?.packName ? metadata.packName : "",
-            packPublish: metadata?.packPublish ? metadata.packPublish : "",
+            packName: metadata?.packName ? metadata.packName : config?.exif?.packName,
+            packPublish: metadata?.packPublish ? metadata.packPublish : config?.exif?.packPublish,
             packEmail: metadata?.packEmail ? metadata.packEmail : config?.exif?.packEmail,
             packWebsite: metadata?.packWebsite ? metadata.packWebsite : config?.exif?.packWebsite,
             androidApp: metadata?.androidApp ? metadata.androidApp : config?.exif?.androidApp,
@@ -110,6 +110,7 @@ async function writeExif(media, metadata) {
             emojis: opt.emojis,
             "is-avatar-sticker": opt.isAvatar,
         };
+        
         const exifAttr = Buffer.from([
             0x49, 0x49, 0x2a, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00,
         ]);

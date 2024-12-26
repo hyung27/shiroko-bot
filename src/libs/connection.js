@@ -8,11 +8,13 @@ import {
     makeCacheableSignalKeyStore,
     makeInMemoryStore,
     useMultiFileAuthState,
-} from "@whiskeysockets/baileys";
+    Browsers,
+} from "baileys";
 import NodeCache from "node-cache";
-import chalk from "chalk";
 import P from "pino";
 import path from "path";
+
+import colors from "./colors.js";
 
 const pairingCode = config.options?.pairingNumber;
 const msgRetryCounterCache = new NodeCache();
@@ -26,18 +28,19 @@ setInterval(() => store.writeToFile(pathStore), 30_000); */
 
 export default async function connectToWhatsApp() {
     try {
-        const { state, saveCreds } = await useMultiFileAuthState(path.resolve("dist/" + (config.options?.sessionName || "lorraine_sessions")));
+        const { state, saveCreds } = await useMultiFileAuthState(path.resolve((config.options?.sessionName || "lorraine_sessions")));
         const { version, isLatest } = await fetchLatestBaileysVersion();
-        console.log(chalk.green(`Using WA v${version.join(".")}, isLatest: ${isLatest}`));
+        console.log(`[ ${colors.green("System")} ] Menggunakan WA v${version.join(".")}, versi terbaru: ${isLatest ? "Ya" : "Tidak"}`);
 
         const sock = makeWASocket({
             version,
             logger,
-            printQRInTerminal: !pairingCode,
+            printQRInTerminal: false,
             auth: {
                 creds: state.creds,
                 keys: makeCacheableSignalKeyStore(state.keys, logger),
             },
+            browser: Browsers.ubuntu("Chrome"),
             msgRetryCounterCache,
             generateHighQualityLinkPreview: true,
             getMessage: async (key) => {
@@ -52,7 +55,7 @@ export default async function connectToWhatsApp() {
             const phoneNumber = config.options.pairingNumber.replace(/[^0-9]/g, "");
             setTimeout(async () => {
                 const code = await sock.requestPairingCode(phoneNumber);
-                console.log(chalk.black(chalk.bgGreen("Your Pairing Code:")), chalk.white(code?.match(/.{1,4}/g)?.join("-") || code));
+                console.log(colors.black(colors.bgGreen("Your Pairing Code:")), colors.white(code?.match(/.{1,4}/g)?.join("-") || code));
             }, 3000);
         }
 
@@ -62,20 +65,21 @@ export default async function connectToWhatsApp() {
             if (events["connection.update"]) {
                 const { connection, lastDisconnect, qr } = events["connection.update"];
                 if (!pairingCode && qr) {
-                    console.log(chalk.green("Scan the QR code below, expires in 60 seconds"));
+                    console.log(colors.green("Scan the QR code below, expires in 60 seconds"));
                 } else if (connection === "close") {
                     const reason = lastDisconnect?.error?.output?.statusCode;
                     if (reason !== DisconnectReason.loggedOut) {
-                        console.log(chalk.green("Reconnecting..."));
-                        connectToWhatsApp();
-                    } else {
-                        console.log(chalk.green("Connection closed. You are logged out."));
+                        sock.ws.close()
                     }
+
+                    console.log(`[ ${colors.red("System")} ] Exit, Periksa jaringanmu ...`);
+                    // process.exit(0);
+                    connectToWhatsApp();
                 } else if (connection === "connecting") {
-                    console.log(chalk.green("Connecting..."));
+                    console.log(`[ ${colors.green("System")} ] Menghubungkan ...`);
                 } else if (connection === "open") {
                     sock.user.jid = sock.decodeJid(sock.user.id);
-                    console.log(chalk.green("Connected!!"));
+                    console.log(`[ ${colors.cyan("Shiroko")} ] Terhubung. Menunggu pesan ...\n\n`);
                 }
             }
 
@@ -90,6 +94,6 @@ export default async function connectToWhatsApp() {
 
         return sock;
     } catch (error) {
-        console.error(chalk.red(error));
+        console.error(colors.red(error));
     }
 }

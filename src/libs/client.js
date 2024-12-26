@@ -9,9 +9,8 @@ import baileys, {
     generateWAMessageFromContent,
     downloadContentFromMessage,
     toBuffer,
-} from "@whiskeysockets/baileys";
+} from "baileys";
 import fs from "fs";
-import PhoneNumber from "awesome-phonenumber";
 import Crypto from "crypto";
 
 export function Client({ sock, store }) {
@@ -68,7 +67,7 @@ export function Client({ sock, store }) {
                     }
                 }
 
-                return PhoneNumber("+" + jid.replace("@s.whatsapp.net", "")).getNumber("international");
+                return "+" + jid.replace("@s.whatsapp.net", "");
             },
         },
 

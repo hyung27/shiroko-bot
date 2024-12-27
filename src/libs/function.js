@@ -234,6 +234,9 @@ export async function loadPlugins() {
             
             /** Setting limit untuk pemakaian command, limit: true berarti akan mengurangi 1 limit setiap user menjalankan fitur, limit: 5 berarti mengurangi 5 limit */
             limit: true,
+
+            /** Custom prefix {string} */
+            cprefix: false,
         }
         let current = [];
         let handler = async () => {
@@ -251,8 +254,10 @@ export async function loadPlugins() {
 
                 add: (extendPlugins) => {
                     try {
-                        !(extendPlugins.active ?? extendPluginsDefault.active) ? extendPlugins.cmd.length ? extendPlugins.cats = [] : null : null;
-                        !(extendPlugins.active ?? extendPluginsDefault.active) ? null : extendPlugins.cmd.length ? !current.some(v => v.func.length) ? current.push(Object.assign({}, extendPluginsDefault, extendPlugins)) : current[0] = (Object.assign({}, extendPluginsDefault, extendPlugins, { func: current[0].func })) : null;
+                        if (!extendPlugins.cmd?.length) extendPlugins.cmd = ["pass"];
+                        if (extendPlugins.cprefix?.length) extendPlugins.cmd = ["x-dev"];
+                        !(extendPlugins.active ?? extendPluginsDefault.active) ? extendPlugins.cmd?.length || extendPlugins.pass ? extendPlugins.cats = [] : null : null;
+                        !(extendPlugins.active ?? extendPluginsDefault.active) ? null : extendPlugins.cmd?.length || extendPlugins.pass ? !current.some(v => v.func.length) ? current.push(Object.assign({}, extendPluginsDefault, extendPlugins)) : current[0] = (Object.assign({}, extendPluginsDefault, extendPlugins, { func: current[0].func })) : null;
                     } catch (e) {
                         console.log(e)
                     }
@@ -292,17 +297,20 @@ export async function loadPlugins() {
             }
         }
 
+        // console.log(plugins)
         console.log(`[ ${colors.green("System")} ] ${Object.keys(plugins).length} Total plugin`);
         console.log(`[ ${colors.green("System")} ] Mengkonversi ...`);
         for (const v of plugins) {
             (v.cmd.length != 0 ? v.cmd.flat() : ["Syntx"]).forEach((e) => {
                 try {
-                    global.ev.on(e, v)
+                    e == "x-dev" ? v.cprefix.forEach((b) => global.ev.on(b, v)) : global.ev.on(e, v)
                 } catch (e) {
                     console.log(e)
                 }
             });
         }
+        
+        // console.log(global.ev.events)
         console.log(`[ ${colors.green("System")} ] ${global.ev.events.size} Total listener`);
         Object.keys(plugins).forEach((v) => {
             Object.keys(v).forEach((f) => {

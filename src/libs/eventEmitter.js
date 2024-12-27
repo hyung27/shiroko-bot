@@ -51,7 +51,8 @@ class EventEmitter {
       this.sys = {};
       this.exp = {};
 
-      const { command, m, sock } = event;
+      const { command: cmds, m, sock } = event;
+      const command = this.events.has(cmds) ? cmds : "pass";
       const { from, pushName, sender, body } = m;
       const prefix = config.options.prefix;
       const noPrefix = prefix.test(m.body) ? body.slice(1) : body;
@@ -70,6 +71,7 @@ class EventEmitter {
               key.test(noPrefix) ? value[0] : this.events.get(command)
             )[0];
       pluginCall = dpluginCall ? dpluginCall : this.events.get(command);
+      // console.log(pluginCall)
       if (!pluginCall) return;
 
       for (const plugin of pluginCall) {
@@ -314,6 +316,7 @@ class EventEmitter {
           sender,
           pushName,
           noPrefix,
+          nbody: text,
           parseCommand,
           ev: global.ev,
           public: plugin.isSpecialForOwner,
@@ -336,22 +339,23 @@ class EventEmitter {
 
         if (global.users[sender].banned) return;
         if (global.users[sender].limit < 1) return;
-        if (!prefix.test(m.body) && !plugin.pass) return;
+        if (!prefix.test(m.body) && !plugin.pass && !plugin.cprefix) return;
         if (plugin.args && parseCommand.length <= 1) return;
         if (plugin.owner && !global.users[sender].owner) return;
         if (!plugin.type.some((t) => t == "ALL" ?  true : t == serial[typess])) return;
         if (plugin.premium && !global.users[sender].premium && !global.users[sender].owner) return;
         if (plugin.cmd?.filter((v) => Array.isArray(v)).map((v) => typeof v[v.length - 1] == "boolean" && v[v.length - 1] ? v.includes(parseCommand[0]) : false).includes(true) && !global.users[sender].premium && !global.users[sender].owner) return;
         sock.readMessages([m.key]);
+        const type = () => sock.sendPresenceUpdate("composing", m.isGroup ? m.metadata.id : sender);
 
         if (
-          plugin.typing &&
+          !plugin.pass && plugin.typing &&
           (typeof body == "string" || body != "" || body)
         ) {
-          sock.sendPresenceUpdate("composing", sender);
+          type()
         }
 
-        await plugin.run.call(this, { sock, sys: this.sys, exp: this.exp, glob, ...other });
+        await plugin.run.call(this, { sock, sys: this.sys, exp: this.exp, glob, type, ...other });
         config.options.systemLimit && !global.users[sender].owner ? global.users[sender].limit -= plugin.limit ? typeof plugin.limit == "boolean" && plugin.limit ? 1 : plugin.limit : 1 : null;
       }
     } catch (error) {

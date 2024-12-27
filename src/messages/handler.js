@@ -31,13 +31,13 @@ export default async function Handler(sock, upsert) {
                     }
 
                     const len = m.body.length
-                    console.log(`[ ${config.options.botName} ] [ ${pushName ? pushName : "Komunitas"} ] - Message: ${len > 100 ? m.body.slice(0, 100) + "..." : m.body}`);
+                    console.log(`[ ${isCmd ? "CMD" : "MESSAGE"} ] [ ${pushName ? pushName : "Komunitas"} ] - Message: ${len > 100 ? m.body.slice(0, 100) + "..." : m.body}`);
 
                     global.users[sender].name = pushName;
                     global.users[sender].chat += 1;
 
                     global.ev.emit({
-                        command: isCmd ? text : "pass",
+                        command: text,
                         sock,
                         m,
                     });

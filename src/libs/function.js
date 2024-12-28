@@ -204,40 +204,77 @@ export async function loadPlugins() {
 
             /** Function khusus untuk public atau user ( Jika ingin membuat function khsus untuk user / public yang berbeda dengan owner ) */
             publicRun: async () => { },
-            
+
             /** Command */
             cmd: [],
-            
+
             /** Kategory untuk command */
             cats: [],
-            
+
             /** isOwner? true berarti hanya owner yang bisa menggunakan perintah tertentu */
             owner: false,
-            
+
             /** isPremium ? true berarti hanya user premium yang bisa menggunakan */
             premium: false,
-            
+
             /** true = command setidaknya harus memasukan 1 argument pada commandnya */
             args: false,
-            
+
             /** true = Pesan apapun akan langsung mengtrigger function tertentu */
             pass: false,
-            
+
             /** false = Menonaktifkan command / plugin */
             active: true,
-            
+
             /** true = Tampilkan `Sedang mengetik ...` untuk command ini */
             typing: false,
-            
+
             /** type spesifik untuk command ["ALL"] = semua media / pesan ["IMAGE", "VIDEO", "STICKER", "ALL", "AUDIO"] */
             type: ["ALL"],
-            
+
             /** Setting limit untuk pemakaian command, limit: true berarti akan mengurangi 1 limit setiap user menjalankan fitur, limit: 5 berarti mengurangi 5 limit */
             limit: true,
+
+            /** Custom prefix {string} */
+            cprefix: false,
+
+            /** Index Command yang ditampilkan di menu */
+            index: false,
+
+            /** Index Command, Lihat contohnya di dalam plugin Panel/add.js */
+            indexCmd: false,
         }
         let current = [];
         let handler = async () => {
             return {
+                funcGlobal: async (objectFunc) => {
+                    try {
+                        if (typeof objectFunc == "function") {
+                            const res = await objectFunc();
+                            Object.keys(res).forEach(v => {
+                                global.ev.globalFunction.set(v, res[v])
+                            })
+                        } else {
+                            Object.keys(objectFunc).forEach(v => {
+                                global.ev.globalFunction.set(v, objectFunc[v])
+                            });
+                        }
+                    } catch (e) {
+                        console.log(e)
+                    }
+                },
+
+                funcInit: (callback) => {
+                    try {
+                        current.length ? null : current.push(Object.assign({}, extendPluginsDefault));
+                        current.forEach((v, i, a) => {
+                            a[i] = Object.assign({}, a[i], { funcInit: [...a[i].funcInit, callback] })
+                        })
+                    } catch (e) {
+                        console.log(e)
+                    }
+                },
+
                 func: (callback) => {
                     try {
                         current.length ? null : current.push(Object.assign({}, extendPluginsDefault));
@@ -251,8 +288,10 @@ export async function loadPlugins() {
 
                 add: (extendPlugins) => {
                     try {
-                        !(extendPlugins.active ?? extendPluginsDefault.active) ? extendPlugins.cmd.length ? extendPlugins.cats = [] : null : null;
-                        !(extendPlugins.active ?? extendPluginsDefault.active) ? null : extendPlugins.cmd.length ? !current.some(v => v.func.length) ? current.push(Object.assign({}, extendPluginsDefault, extendPlugins)) : current[0] = (Object.assign({}, extendPluginsDefault, extendPlugins, { func: current[0].func })) : null;
+                        if (!extendPlugins.cmd?.length) extendPlugins.cmd = ["pass"];
+                        if (extendPlugins.cprefix?.length) extendPlugins.cmd = ["x-dev"];
+                        !(extendPlugins.active ?? extendPluginsDefault.active) ? extendPlugins.cmd?.length || extendPlugins.pass ? extendPlugins.cats = [] : null : null;
+                        !(extendPlugins.active ?? extendPluginsDefault.active) ? null : extendPlugins.cmd?.length || extendPlugins.pass ? !current.some(v => v.func.length) ? current.push(Object.assign({}, extendPluginsDefault, extendPlugins)) : current[0] = (Object.assign({}, extendPluginsDefault, extendPlugins, { func: current[0].func })) : null;
                     } catch (e) {
                         console.log(e)
                     }
@@ -297,12 +336,18 @@ export async function loadPlugins() {
         for (const v of plugins) {
             (v.cmd.length != 0 ? v.cmd.flat() : ["Syntx"]).forEach((e) => {
                 try {
-                    global.ev.on(e, v)
+                    if (e == "x-dev") {
+                        global.cprefix = [...new Set([...global.cprefix, ...v.cprefix])]
+                        v.cprefix.forEach((b) => global.ev.on(b, v))
+                    } else {
+                        global.ev.on(e, v)
+                    }
                 } catch (e) {
                     console.log(e)
                 }
             });
         }
+
         console.log(`[ ${colors.green("System")} ] ${global.ev.events.size} Total listener`);
         Object.keys(plugins).forEach((v) => {
             Object.keys(v).forEach((f) => {

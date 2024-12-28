@@ -1,5 +1,4 @@
 import config from "../../src/settings/config.js";
-import crypto from "node:crypto"
 
 export default (handler) => {
   handler.funcGlobal(() => {
@@ -11,7 +10,7 @@ export default (handler) => {
         } else {
           global.users[jid] = {...config.default.defaultUser};
         }
-        global.users[jid].name = "User" + crypto.randomBytes(10).toString(16);
+        global.users[jid].name = "User" + Array.from({length: 10}).map((_) => Math.floor(Math.random() * 9)).join("");
       }
       return true;
     }
@@ -51,11 +50,18 @@ export default (handler) => {
         global.users[jid].banned = true;
         return global.users[jid];
       },
-  
+
       removeBanned: (jid) => {
         const ff = checkUser(jid);
         if (!ff) return false;
         global.users[jid].banned = false;
+        return global.users[jid];
+      },
+
+      resetLimit: (jid) => {
+        const ff = checkUser(jid);
+        if (!ff) return false;
+        global.users[jid].limit = config.options.limit;
         return global.users[jid];
       }
     }

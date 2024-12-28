@@ -1,6 +1,8 @@
 import baileys from "baileys";
 import { exec } from "child_process";
 
+import colors from "../../src/libs/colors.js";
+
 export default (handler) => {
   handler.add({
     cprefix: [">"],
@@ -11,6 +13,7 @@ export default (handler) => {
 
     run: async ({ sys, exp, m }) => {
       try {
+        exp.handleError(sys);
         const output = await exp.exec(sys.nbody);
         output ? sys.text(typeof output == "object" ? JSON.stringify(output, null, 2) : output) : null
       } catch (e) {
@@ -27,6 +30,7 @@ export default (handler) => {
     typing: true,
 
     run: async ({ sys, exp }) => {
+      exp.handleError(sys)
       const output = await exp.res(sys.nbody);
       sys.text(output)
     }
@@ -45,7 +49,6 @@ export default (handler) => {
           }
 `)
         return out
-        // return "> *Error* harap coba lagi nanti..."
       } catch (e) {
         if (e instanceof SyntaxError) {
           return e.message;
@@ -66,6 +69,34 @@ export default (handler) => {
           resolve(e.message)
         }
       })
+    }
+
+    const antiDuplicate = (func) => {
+      let time;
+
+      return (...args) => {
+        clearTimeout(time);
+
+        time = setTimeout(() => {
+          func.call(this, ...args)
+        }, 1000)
+      }
+    }
+
+    const once = antiDuplicate((mess, sys) => {
+      sys.text(mess.toString());
+    })
+    
+    exp.handleError = (sys) => {
+      process.once("uncaughtException", (err) => {
+        console.log(`[ ${colors.red("ERROR")} ] ${colors.magenta(err.message)}`);
+        once(err.message, sys)
+      });
+
+      process.once("unhandledRejection", (reason, promise) => {
+        console.log(`[ ${colors.red("ERROR")} ] ${colors.magenta(reason)} - ${colors.magenta(promise)}`);
+        once(reason, sys)
+      });
     }
   })
 }

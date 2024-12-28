@@ -480,7 +480,7 @@ export default (handler) => {
           });
     
           await getFinish.data.on("data", async (chunk) => {
-            // console.log(chunk.toString());
+            console.log(chunk.toString());
             const data = await chunk
               .toString()
               .split(/\r?\n/)

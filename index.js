@@ -27,6 +27,7 @@ global.initFont = true;
 
 global.users = {};
 global.panel = {};
+global.cprefix = [];
 global.antiSpam = false;
 global.showAll = true;
 global.dataPanel = {

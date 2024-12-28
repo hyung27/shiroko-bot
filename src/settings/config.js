@@ -10,6 +10,7 @@ const define = {
         prefixExample: ".", // Jangan diganti, ini hanya untuk contoh prefix saja ( gak ngaruh ke system prefix asli )
         pairingNumber: "6285220188676",
         // pairingNumber: "6285643797514",
+        autoWelcome: true,
         botName: "Shiroko Bot",
         botMode: "PUBLIC",
         ownerName: "X - Dev",
@@ -21,6 +22,7 @@ const define = {
         systemLimit: true, // Mengaktifkan system limit
         limit: 100, // Jumlah limit untuk setiap user
         menuType: 2, // ( Belum work ) 1, 2 - 1 Untuk Full Button, 2 Untuk anti button. Antisipasi mark murka kalau button di fix lagi
+        
         panel: [  // Kumpulan panel. isi sesuai dengan panelmu dan tambahkan jika dirasa kurang banyak
             { // Tambahkan dari sini jika kurang
                 domain: '', // isi dengan domain panel lu

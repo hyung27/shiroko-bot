@@ -130,7 +130,7 @@ export default handler => {
           false
         );
       }
-      const { provider, config : configHc, fileName } = glob.getConfigId(prov, name);
+      const { provider, config: configHc, fileName } = glob.getConfigId(prov, name);
       if (!provider || !configHc) {
         return sys.thumbnail(
           `\n> \`Config Tidak ditemukan\`\n\nContoh penggunaan:\n\n*${config.options.prefixExample}${sys.cmd} telkomsel ilmupedia*\n\natau\n\n*${config.options.prefixExample}${sys.cmd} axis video*`,

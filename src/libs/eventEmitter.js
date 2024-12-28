@@ -46,6 +46,7 @@ class EventEmitter {
 
   async emit(event) {
     let other;
+    let senders;
 
     try {
       let pluginCall = {};
@@ -55,6 +56,7 @@ class EventEmitter {
       const { command: cmds, m, sock } = event;
       const command = this.events.has(cmds) ? cmds : "pass";
       const { from, pushName, sender, body } = m;
+      senders = sender;
       const prefix = config.options.prefix;
       const noPrefix = prefix.test(m.body) ? body.slice(1) : body;
       const parseCommand = noPrefix.split(" ");
@@ -72,7 +74,6 @@ class EventEmitter {
               key.test(noPrefix) ? value[0] : this.events.get(command)
             )[0];
       pluginCall = dpluginCall ? dpluginCall : this.events.get(command);
-      // console.log(pluginCall)
       if (!pluginCall) return;
 
       for (const plugin of pluginCall) {
@@ -81,7 +82,7 @@ class EventEmitter {
           {
             sticker: typeof sticker == "object" ? sticker : { url: sticker },
             mentions: [sender],
-            ai: true,
+            ...(!sender.endsWith("@newsletter") ? { ai: true } : {}),
             contextInfo: {
               ...(config.message.forwarded ? {
                 forwardingScore: 999,
@@ -91,7 +92,7 @@ class EventEmitter {
           },
           {
             quoted: await global.ftroly(config.options.botName),
-            ...(ephe ? { ephemeralExpiration: 86400 } : {})
+            ...(ephe && !sender.endsWith("@newsletter") ? { ephemeralExpiration: 86400 } : {})
           }
         );
         this.sys.text = async (teks, ephe = true, jid = false) => sock.sendMessage(
@@ -99,7 +100,7 @@ class EventEmitter {
           {
             text: teks,
             mentions: [sender],
-            ai: true,
+            ...(!sender.endsWith("@newsletter") ? { ai: true } : {}),
             contextInfo: {
               ...(config.message.forwarded ? {
                 forwardingScore: 999,
@@ -109,14 +110,14 @@ class EventEmitter {
           },
           {
             quoted: await global.ftroly(config.options.botName),
-            ...(ephe ? { ephemeralExpiration: 86400 } : {})
+            ...(ephe && !sender.endsWith("@newsletter") ? { ephemeralExpiration: 86400 } : {})
           }
         );
         this.sys.product = async (title, description, body, footer, url = false, letter = true, ephe = true) => await sock.sendMessage(from, {
           body: body,
           businessOwnerJid: from,
           footer: footer,
-          ai: true,
+          ...(!sender.endsWith("@newsletter") ? { ai: true } : {}),
           product: {
             currencyCode: "Rp",
             description: description,
@@ -154,7 +155,7 @@ class EventEmitter {
         },
           {
             quoted: await global.ftroly(config.options.botName),
-            ...(ephe ? { ephemeralExpiration: 86400 } : {})
+            ...(ephe && !sender.endsWith("@newsletter") ? { ephemeralExpiration: 86400 } : {})
           })
         this.sys.thumbnail = async (teks, url, isLarger = true, isDocs = true, letter = true, ephe = true) => await sock.sendMessage(
           from,
@@ -169,7 +170,7 @@ class EventEmitter {
               caption: teks,
             } : { text: teks, }),
             mentions: [sender],
-            ai: true,
+            ...(!sender.endsWith("@newsletter") ? { ai: true } : {}),
             contextInfo: {
               ...(config.message.forwarded ? {
                 forwardingScore: 999,
@@ -194,7 +195,7 @@ class EventEmitter {
           },
           {
             quoted: await global.ftroly(config.options.botName),
-            ...(ephe ? { ephemeralExpiration: 86400 } : {})
+            ...(ephe && !sender.endsWith("@newsletter") ? { ephemeralExpiration: 86400 } : {})
           }
         );
         this.sys.document = async (fake = true, teks, url = "", fileName = "", mimetype = "", fileLength = 0, quoted = true, letter = true, forward = true, ephe = true) => await sock.sendMessage(
@@ -218,7 +219,7 @@ class EventEmitter {
             }),
             caption: teks,
             mentions: [sender],
-            ai: true,
+            ...(!sender.endsWith("@newsletter") ? { ai: true } : {}),
             contextInfo: {
               ...(config.message.forwarded && forward ? {
                 forwardingScore: 999,
@@ -235,42 +236,75 @@ class EventEmitter {
           },
           quoted ? {
             quoted: await global.ftroly(config.options.botName),
-            ...(ephe ? { ephemeralExpiration: 86400 } : {})
+            ...(ephe && !sender.endsWith("@newsletter") ? { ephemeralExpiration: 86400 } : {})
           } : {}
         );
-        this.sys.image = async (teks, url, ephe = true) => await sock.sendMessage(from, {
+        this.sys.image = async (teks, url, ephe = true, letter = true) => await sock.sendMessage(from, {
           image: typeof url == "object" ? url : {
             url: url
           },
-          ai: true,
+          ...(!sender.endsWith("@newsletter") ? { ai: true } : {}),
           caption: teks,
-          mimetype: "image/jpeg"
+          mimetype: "image/jpeg",
+          contextInfo: {
+            ...(config.message.forwarded && forward ? {
+              forwardingScore: 999,
+              isForwarded: true,
+            } : {}),
+            ...(letter ? {
+              forwardedNewsletterMessageInfo: {
+                newsletterJid: config.options.newsletterJid ? config.options.newsletterJid : config.default.newsletterJid,
+                serverMessageId: -1,
+                newsletterName: config.options.newsletterName
+              }
+            } : {}),
+          },
         }, {
           quoted: await global.ftroly(config.options.botName),
-          ...(ephe ? { ephemeralExpiration: 86400 } : {})
+          ...(ephe && !sender.endsWith("@newsletter") ? { ephemeralExpiration: 86400 } : {})
         })
-        this.sys.video = async (teks, url, ephe = true) => await sock.sendMessage(from, {
+        this.sys.video = async (teks, url, ephe = true, letter = true) => await sock.sendMessage(from, {
           video: typeof url == "object" ? url : {
             url: url
           },
-          ai: true,
+          ...(!sender.endsWith("@newsletter") ? { ai: true } : {}),
           caption: teks,
-          mimetype: "video/mp4"
+          mimetype: "video/mp4",
+          contextInfo: {
+            ...(config.message.forwarded && forward ? {
+              forwardingScore: 999,
+              isForwarded: true,
+            } : {}),
+            ...(letter ? {
+              forwardedNewsletterMessageInfo: {
+                newsletterJid: config.options.newsletterJid ? config.options.newsletterJid : config.default.newsletterJid,
+                serverMessageId: -1,
+                newsletterName: config.options.newsletterName
+              }
+            } : {}),
+          },
         }, {
           quoted: await global.ftroly(config.options.botName),
-          ...(ephe ? { ephemeralExpiration: 86400 } : {})
+          ...(ephe && !sender.endsWith("@newsletter") ? { ephemeralExpiration: 86400 } : {})
         })
-        this.sys.audio = async (url, isThumb = false, isLarger = false, ephe = true) => await sock.sendMessage(from, {
+        this.sys.audio = async (url, isThumb = false, isLarger = false, ephe = true, letter = true) => await sock.sendMessage(from, {
           audio: {
             url: url
           },
-          ai: true,
+          ...(!sender.endsWith("@newsletter") ? { ai: true } : {}),
           mimetype: "audio/mp4",
           ...(isThumb ? {
             contextInfo: {
               ...(config.message.forwarded ? {
                 forwardingScore: 999,
                 isForwarded: true,
+              } : {}),
+              ...(letter ? {
+                forwardedNewsletterMessageInfo: {
+                  newsletterJid: config.options.newsletterJid ? config.options.newsletterJid : config.default.newsletterJid,
+                  serverMessageId: -1,
+                  newsletterName: config.options.newsletterName
+                }
               } : {}),
               externalAdReply: {
                 title: config.options.botName,
@@ -284,7 +318,7 @@ class EventEmitter {
           } : {})
         }, {
           quoted: await global.ftroly(config.options.botName),
-          ...(ephe ? { ephemeralExpiration: 86400 } : {})
+          ...(ephe && !sender.endsWith("@newsletter") ? { ephemeralExpiration: 86400 } : {})
         })
         this.sys.contact = async (displayName, vcard, letter = true, isThumb = false, isLarger = false, ephe = true) => {
           if (letter) {
@@ -314,7 +348,7 @@ class EventEmitter {
               displayName,
               contacts: vcard
             },
-            ai: true,
+            ...(!sender.endsWith("@newsletter") ? { ai: true } : {}),
           });
         }
 
@@ -347,40 +381,42 @@ class EventEmitter {
         }
         const typess = m.isQuoted ? m.quoted.type : m.type;
 
-        if (global.users[sender].banned) return;
-        if (global.users[sender].limit < 1 && !global.users[sender].premium) return this.sys.text(messageInfo.msg.limit);
-        if (!prefix.test(m.body) && !plugin.pass && !plugin.cprefix) return;
-        if (plugin.args && parseCommand.length <= 1) return this.sys.text(messageInfo.msg.query);
-        if (plugin.owner && !global.users[sender].owner) return this.sys.text(messageInfo.msg.owner);
-        if (!plugin.type.some((t) => t == "ALL" ? true : t == serial[typess])) return this.sys.text(messageInfo.msg.format(plugin.type.length > 1 ? plugin.type.join(" dan ").toLowerCase() : plugin.type.join("").toLowerCase()));
-        if (plugin.premium && !global.users[sender].premium && !global.users[sender].owner) return this.sys.text(messageInfo.msg.premium);
-        if (plugin.cmd?.filter((v) => Array.isArray(v)).map((v) => typeof v[v.length - 1] == "boolean" && v[v.length - 1] ? v.includes(parseCommand[0]) : false).includes(true) && !global.users[sender].premium && !global.users[sender].owner) return this.sys.text(messageInfo.msg.premium);
-        sock.readMessages([m.key]);
+        if (!sender.endsWith("@newsletter")) {
+          if (global.users[sender].banned) return;
+          if (global.users[sender].limit < 1 && !global.users[sender].premium) return this.sys.text(messageInfo.msg.limit);
+          if (!prefix.test(m.body) && !plugin.pass && !plugin.cprefix.length) return;
+          if (plugin.args && parseCommand.length <= 1) return this.sys.text(messageInfo.msg.query);
+          if (plugin.owner && !global.users[sender].owner) return this.sys.text(messageInfo.msg.owner);
+          if (!plugin.type.some((t) => t == "ALL" ? true : t == serial[typess])) return this.sys.text(messageInfo.msg.format(plugin.type.length > 1 ? plugin.type.join(" dan ").toLowerCase() : plugin.type.join("").toLowerCase()));
+          if (plugin.premium && !global.users[sender].premium && !global.users[sender].owner) return this.sys.text(messageInfo.msg.premium);
+          if (plugin.cmd?.filter((v) => Array.isArray(v)).map((v) => typeof v[v.length - 1] == "boolean" && v[v.length - 1] ? v.includes(parseCommand[0]) : false).includes(true) && !global.users[sender].premium && !global.users[sender].owner) return this.sys.text(messageInfo.msg.premium);
+          sock.readMessages([m.key]);
+        }
         const type = () => sock.sendPresenceUpdate("composing", m.isGroup ? m.metadata.id : m.from);
 
         if (
-          !plugin.pass && plugin.typing &&
+          !plugin.pass && plugin.typing && !sender.endsWith("@newsletter") &&
           (typeof body == "string" || body != "" || body)
         ) {
           type()
         }
 
         await plugin.run.call(this, { sock, sys: this.sys, exp: this.exp, glob, type, ...other });
-        config.options.systemLimit && !global.users[sender].owner ? global.users[sender].limit -= plugin.limit ? typeof plugin.limit == "boolean" && plugin.limit ? 1 : plugin.limit : 1 : null;
+        !sender.endsWith("@newsletter") ? config.options.systemLimit && !global.users[sender].owner ? global.users[sender].limit -= plugin.limit ? typeof plugin.limit == "boolean" && plugin.limit ? 1 : plugin.limit : 1 : null : null;
       }
     } catch (error) {
       console.log(error);
     } finally {
-      Object.keys(this.sys).forEach((v) => {
-        this.sys[v] = null;
-      })
-      Object.keys(this.exp).forEach((v) => {
-        this.exp[v] = null;
-      })
+      // Object.keys(this.sys).forEach((v) => {
+      //   this.sys[v] = null;
+      // })
+      // Object.keys(this.exp).forEach((v) => {
+      //   this.exp[v] = null;
+      // })
       if (other) Object.keys(other).forEach((v) => {
         other[v] = null;
       })
-      global.saveUserInfo(global.users)
+      !senders.endsWith("@newsletter") ? global.saveUserInfo(global.users) : null
     }
   }
 }

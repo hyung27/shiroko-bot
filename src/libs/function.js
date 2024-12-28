@@ -336,7 +336,12 @@ export async function loadPlugins() {
         for (const v of plugins) {
             (v.cmd.length != 0 ? v.cmd.flat() : ["Syntx"]).forEach((e) => {
                 try {
-                    e == "x-dev" ? v.cprefix.forEach((b) => global.ev.on(b, v)) : global.ev.on(e, v)
+                    if (e == "x-dev") {
+                        global.cprefix = [...new Set([...global.cprefix, ...v.cprefix])]
+                        v.cprefix.forEach((b) => global.ev.on(b, v))
+                    } else {
+                        global.ev.on(e, v)
+                    }
                 } catch (e) {
                     console.log(e)
                 }

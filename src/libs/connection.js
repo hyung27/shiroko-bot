@@ -15,6 +15,7 @@ import P from "pino";
 import path from "path";
 
 import colors from "./colors.js";
+import { createCanvasIntro } from "./group.js";
 
 const pairingCode = config.options?.pairingNumber;
 const msgRetryCounterCache = new NodeCache();
@@ -87,9 +88,49 @@ export default async function connectToWhatsApp() {
                 Handler(sock, events["messages.upsert"]);
             }
 
+            // {
+            //     id: '120363313142666498@g.us',
+            //     author: '6285797442902@s.whatsapp.net',
+            //     participants: ['6283822100083@s.whatsapp.net'],
+            //     action: 'add'
+            // }
+            if (events["group-participants.update"] && config.options.autoWelcome) {
+                const eve = events["group-participants.update"];
+                switch (eve?.action) {
+                    case "add":
+                        const gens = await createCanvasIntro(eve?.participants[0], sock, eve?.id, "Selamat Datang di Group", "Wellcome")
+                        await sock.sendMessage(eve?.id, {
+                            image: gens.buffer,
+                            ai: true,
+                            caption: gens.desc + "\n\n> " + gens.member + " Anggota",
+                            mimetype: "image/jpeg"
+                        }, {
+                            quoted: await global.ftroly(config.options.botName),
+                            ephemeralExpiration: 86400
+                        })
+                        break
+                    case "remove":
+                        const gen = await createCanvasIntro(eve?.participants[0], sock, eve?.id, "Meninggalkan Group", "Goodbye")
+                        await sock.sendMessage(eve?.id, {
+                            image: gen.buffer,
+                            ai: true,
+                            caption: "Selamat tinggal, semoga tenang di dunia sana..." + "\n\n> " + gen.member + " Anggota",
+                            mimetype: "image/jpeg"
+                        }, {
+                            quoted: await global.ftroly(config.options.botName),
+                            ephemeralExpiration: 86400
+                        })
+                        break
+                }
+            }
+
             if (events["creds.update"]) {
                 await saveCreds();
             }
+
+            // if (events["nodeRaw"]) {
+            //     console.log(events["nodeRaw"])
+            // }
         });
 
         return sock;

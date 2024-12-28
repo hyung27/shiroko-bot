@@ -8,6 +8,7 @@ export default async function Handler(sock, upsert) {
             try {
                 if (msg) {
                     let m = await Serialize(sock, msg);
+                    // console.log(JSON.stringify(m, null, 2))
                     if (!m?.key) return;
                     if (!m?.message) return;
                     if (m?.key?.fromMe) return;
@@ -17,8 +18,8 @@ export default async function Handler(sock, upsert) {
                     if (!m) return;
 
                     const prefix = config.options.prefix;
-                    const isCmd = prefix.test(m.body);
-                    const text = isCmd ? m.body.slice(1).split(" ")[0] : m.body.split(" ")[0];
+                    const isCmd = prefix.test(m.body) || global.cprefix.some((x) => m.body.startsWith(x));
+                    const text = prefix.test(m.body) ? m.body.slice(1).split(" ")[0] : m.body.split(" ")[0];
                     const { sender, pushName } = m;
 
                     if (!(Object.keys(global.users).includes(sender))) {
@@ -30,7 +31,7 @@ export default async function Handler(sock, upsert) {
                     }
 
                     const len = m.body.length
-                    console.log(`[ ${isCmd ? "CMD" : "MESSAGE"} ] [ ${pushName ? pushName : "Komunitas"} ] - Message: ${len > 100 ? m.body.slice(0, 100) + "..." : m.body}`);
+                    console.log(`[ ${isCmd ? colors.cyan("CMD") : colors.blue("MESSAGE")} ] [ ${pushName ? pushName : "Komunitas"} ] - Message: ${len > 100 ? m.body.slice(0, 100) + "..." : m.body}`);
 
                     global.users[sender].name = pushName;
                     global.users[sender].chat += 1;

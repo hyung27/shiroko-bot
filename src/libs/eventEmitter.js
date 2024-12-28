@@ -239,7 +239,7 @@ class EventEmitter {
             ...(ephe && !sender.endsWith("@newsletter") ? { ephemeralExpiration: 86400 } : {})
           } : {}
         );
-        this.sys.image = async (teks, url, ephe = true, letter = true) => await sock.sendMessage(from, {
+        this.sys.image = async (teks, url, ephe = true, letter = true, forward = true) => await sock.sendMessage(from, {
           image: typeof url == "object" ? url : {
             url: url
           },
@@ -263,7 +263,7 @@ class EventEmitter {
           quoted: await global.ftroly(config.options.botName),
           ...(ephe && !sender.endsWith("@newsletter") ? { ephemeralExpiration: 86400 } : {})
         })
-        this.sys.video = async (teks, url, ephe = true, letter = true) => await sock.sendMessage(from, {
+        this.sys.video = async (teks, url, ephe = true, letter = true, forward = true) => await sock.sendMessage(from, {
           video: typeof url == "object" ? url : {
             url: url
           },

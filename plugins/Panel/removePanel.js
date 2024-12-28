@@ -22,7 +22,7 @@ export default (handler) => {
 │ ❏ *Location* : ${vpanel.location}
 ┗––––––––––✦
 
-> Powered By *@${settings.ownerName}*`)
+> Powered By *@${config.options.ownerName}*`)
       const res = await exp.del(versi);
       if (!res) return await sys.text(`> Panel dengan versi ${versi} tidak ada!`);
       await global.reloadHandler();

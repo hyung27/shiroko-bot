@@ -20,7 +20,7 @@ export default async (handler) => {
         if (!vpanel) return null;
         let t = sys.nbody.split(",");
         if (t.length < 3)
-          return sys.reply(`*Format salah!*
+          return sys.text(`*Format salah!*
   
 Penggunaan:
 ${config.options.prefixExample + sys.cmd} 1gb, user, nomer
@@ -93,12 +93,12 @@ ${config.options.prefixExample + sys.cmd} --c 350, 350, 50, user, nomer
 
 > *Note:* _OWNER HANYA MENGIRIM 1X DATA AKUN ANDA MOHON DI SIMPAN BAIK BAIK KALAU DATA AKUN ANDA HILANG OWNER TIDAK DAPAT MENGIRIM AKUN ANDA LAGI_
 
-> Powered By *@${settings.ownerName}*`;
+> Powered By *@${config.options.ownerName}*`;
         console.log(ctf)
         sock.sendMessage(
           u,
           { image: { url: akunlo }, caption: ctf },
-          { quoted: await global.ftroly(settings.botName) }
+          { quoted: await global.ftroly(config.options.botName) }
         );
         let data2 = await f2.json();
         let startup_cmd = data2.attributes.startup;
@@ -143,15 +143,15 @@ ${config.options.prefixExample + sys.cmd} --c 350, 350, 50, user, nomer
           }),
         });
         let res = await f3.json();
-        if (res.errors) return sys.reply(JSON.stringify(res.errors[0], null, 2));
+        if (res.errors) return sys.text(JSON.stringify(res.errors[0], null, 2));
         let server = res.attributes;
-        sys.reply(`┏❏──「 *Info* 」───⬣
+        sys.text(`┏❏──「 *Info* 」───⬣
 │ ❏ *Success create user + server id :* \`${user.id}\`
 ┗––––––––––✦
 
 > Data sudah dikirim ke nomor tujuan.
 
-> DONE BY ${settings.ownerName}⚡`);
+> DONE BY ${config.options.ownerName}⚡`);
       } catch (error) {
         console.log(error)
       }

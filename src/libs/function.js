@@ -243,6 +243,12 @@ export async function loadPlugins() {
 
             /** Index Command, Lihat contohnya di dalam plugin Panel/add.js */
             indexCmd: false,
+
+            /** Setting hanya bisa digunakan didalam group */
+            group: false,
+
+            /** Apakah hanya admin group yang bisa menggunakan command ini? */
+            admin: false,
         }
         let current = [];
         let handler = async () => {

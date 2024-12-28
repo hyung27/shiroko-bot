@@ -52,6 +52,12 @@ const define = {
 
     default: {
         newsletterJid: "120363361999470509@newsletter",
+        defaultGroup: {
+            name: "Unknown",
+            wellcome: false,
+            banned: false,
+            nsfw: false,
+        },
         defaultUser: {
             name: "Unknown",
             premium: false,

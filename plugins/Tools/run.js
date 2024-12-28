@@ -88,10 +88,10 @@ export default (handler) => {
     })
     
     exp.handleError = (sys) => {
-      process.once("uncaughtException", (err) => {
-        console.log(`[ ${colors.red("ERROR")} ] ${colors.magenta(err.message)}`);
-        once(err.message, sys)
-      });
+      // process.once("uncaughtException", (err) => {
+      //   console.log(`[ ${colors.red("ERROR")} ] ${colors.magenta(err.message)}`);
+      //   once(err.message, sys)
+      // });
 
       process.once("unhandledRejection", (reason, promise) => {
         console.log(`[ ${colors.red("ERROR")} ] ${colors.magenta(reason)} - ${colors.magenta(promise)}`);

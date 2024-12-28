@@ -26,6 +26,7 @@ global.init = true;
 global.initFont = true;
 
 global.users = {};
+global.groups = {};
 global.panel = {};
 global.cprefix = [];
 global.antiSpam = false;
@@ -121,6 +122,9 @@ global.dataPanel = {
 global.saveUserInfo = async (value) => {
     await fs.writeFileSync("./src/database/users.json", JSON.stringify(value))
 }
+global.saveGroupInfo = async (value) => {
+    await fs.writeFileSync("./src/database/groups.json", JSON.stringify(value))
+}
 global.savePanel = () => {
     fs.writeFileSync("./src/database/panel.json", JSON.stringify(Object.values(global.panel), null, 2));
 }
@@ -183,6 +187,10 @@ async function initialize() {
         (async () => {
             const dt = await fs.readFileSync("./src/database/users.json", "utf-8");
             global.users = await JSON.parse(dt)
+        })(),
+        (async () => {
+            const dt = await fs.readFileSync("./src/database/groups.json", "utf-8");
+            global.groups = await JSON.parse(dt)
         })(),
         (async () => {
             const dt = await fs.readFileSync("./src/database/panel.json", "utf-8");

@@ -43,6 +43,7 @@ export async function Serialize(sock, msg) {
         m.msg = extractMessageContent(m.message[m.type]) || m.message[m.type];
         m.mentions = m.msg?.contextInfo?.mentionedJid || [];
         m.body =
+            JSON.parse(m.message?.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson ?? "{}")?.id ||
             m.msg?.text ||
             m.msg?.conversation ||
             m.msg?.caption ||
@@ -216,12 +217,12 @@ export async function Serialize(sock, msg) {
             const MediaKey = m.isQuoted ? m.quoted.msg.mediaKey : m.msg.mediaKey;
             const MediaType = m.isQuoted ? /image/i.test(m.quoted.msg.mimetype) ? "image" : /webp/i.test(m.quoted.msg.mimetype) ? "image" : "video" : /image/i.test(m.msg.mimetype) ? "image" : /webp/i.test(m.msg.mimetype) ? "image" : "video";
 
-            const dl = await downloadContentFromMessage({url: Media, mediaKey: MediaKey}, MediaType);
+            const dl = await downloadContentFromMessage({ url: Media, mediaKey: MediaKey }, MediaType);
             let buffer = Buffer.from([])
             for await (const chunk of dl) {
                 buffer = Buffer.concat([buffer, chunk])
             }
-            
+
             return {
                 type: MediaType.toUpperCase(),
                 buffer,

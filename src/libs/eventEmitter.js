@@ -1,5 +1,6 @@
 import axios from "axios";
 import config from "../settings/config.js";
+import messageInfo from "../settings/message.js";
 
 class EventEmitter {
   constructor() {
@@ -80,6 +81,7 @@ class EventEmitter {
           {
             sticker: typeof sticker == "object" ? sticker : { url: sticker },
             mentions: [sender],
+            ai: true,
             contextInfo: {
               ...(config.message.forwarded ? {
                 forwardingScore: 999,
@@ -97,6 +99,7 @@ class EventEmitter {
           {
             text: teks,
             mentions: [sender],
+            ai: true,
             contextInfo: {
               ...(config.message.forwarded ? {
                 forwardingScore: 999,
@@ -113,6 +116,7 @@ class EventEmitter {
           body: body,
           businessOwnerJid: from,
           footer: footer,
+          ai: true,
           product: {
             currencyCode: "Rp",
             description: description,
@@ -165,6 +169,7 @@ class EventEmitter {
               caption: teks,
             } : { text: teks, }),
             mentions: [sender],
+            ai: true,
             contextInfo: {
               ...(config.message.forwarded ? {
                 forwardingScore: 999,
@@ -213,6 +218,7 @@ class EventEmitter {
             }),
             caption: teks,
             mentions: [sender],
+            ai: true,
             contextInfo: {
               ...(config.message.forwarded && forward ? {
                 forwardingScore: 999,
@@ -236,6 +242,7 @@ class EventEmitter {
           image: typeof url == "object" ? url : {
             url: url
           },
+          ai: true,
           caption: teks,
           mimetype: "image/jpeg"
         }, {
@@ -246,6 +253,7 @@ class EventEmitter {
           video: typeof url == "object" ? url : {
             url: url
           },
+          ai: true,
           caption: teks,
           mimetype: "video/mp4"
         }, {
@@ -256,6 +264,7 @@ class EventEmitter {
           audio: {
             url: url
           },
+          ai: true,
           mimetype: "audio/mp4",
           ...(isThumb ? {
             contextInfo: {
@@ -304,7 +313,8 @@ class EventEmitter {
             contacts: {
               displayName,
               contacts: vcard
-            }
+            },
+            ai: true,
           });
         }
 
@@ -338,15 +348,15 @@ class EventEmitter {
         const typess = m.isQuoted ? m.quoted.type : m.type;
 
         if (global.users[sender].banned) return;
-        if (global.users[sender].limit < 1) return;
+        if (global.users[sender].limit < 1 && !global.users[sender].premium) return this.sys.text(messageInfo.msg.limit);
         if (!prefix.test(m.body) && !plugin.pass && !plugin.cprefix) return;
-        if (plugin.args && parseCommand.length <= 1) return;
-        if (plugin.owner && !global.users[sender].owner) return;
-        if (!plugin.type.some((t) => t == "ALL" ?  true : t == serial[typess])) return;
-        if (plugin.premium && !global.users[sender].premium && !global.users[sender].owner) return;
-        if (plugin.cmd?.filter((v) => Array.isArray(v)).map((v) => typeof v[v.length - 1] == "boolean" && v[v.length - 1] ? v.includes(parseCommand[0]) : false).includes(true) && !global.users[sender].premium && !global.users[sender].owner) return;
+        if (plugin.args && parseCommand.length <= 1) return this.sys.text(messageInfo.msg.query);
+        if (plugin.owner && !global.users[sender].owner) return this.sys.text(messageInfo.msg.owner);
+        if (!plugin.type.some((t) => t == "ALL" ? true : t == serial[typess])) return this.sys.text(messageInfo.msg.format(plugin.type.length > 1 ? plugin.type.join(" dan ").toLowerCase() : plugin.type.join("").toLowerCase()));
+        if (plugin.premium && !global.users[sender].premium && !global.users[sender].owner) return this.sys.text(messageInfo.msg.premium);
+        if (plugin.cmd?.filter((v) => Array.isArray(v)).map((v) => typeof v[v.length - 1] == "boolean" && v[v.length - 1] ? v.includes(parseCommand[0]) : false).includes(true) && !global.users[sender].premium && !global.users[sender].owner) return this.sys.text(messageInfo.msg.premium);
         sock.readMessages([m.key]);
-        const type = () => sock.sendPresenceUpdate("composing", m.isGroup ? m.metadata.id : sender);
+        const type = () => sock.sendPresenceUpdate("composing", m.isGroup ? m.metadata.id : m.from);
 
         if (
           !plugin.pass && plugin.typing &&

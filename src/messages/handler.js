@@ -8,13 +8,12 @@ export default async function Handler(sock, upsert) {
             try {
                 if (msg) {
                     let m = await Serialize(sock, msg);
-                    // console.log(JSON.stringify(m, null, 2))
-                    // console.log(m)
                     if (!m?.key) return;
                     if (!m?.message) return;
                     if (m?.key?.fromMe) return;
                     if (!m?.body) return;
                     if (Object.keys(msg.message)[0] == "protocolMessage") return;
+                    if (config.options.botMode == "SELF" && !(config.options.owner.some((n) => m.sender == n + global.net) || m.key.fromMe || global.users[m.sender].owner)) return;
                     if (!m) return;
 
                     const prefix = config.options.prefix;

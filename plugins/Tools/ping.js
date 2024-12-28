@@ -86,7 +86,6 @@ export default (handler) => {
       }
 
       const ips = hideIp(myip.ip);
-      console.log(m)
       const respTimeInSeconds =
         (Date.now() - new Date(m.timestamp * 1000)) / 1000;
         const resp = `${respTimeInSeconds.toFixed(3)} second${

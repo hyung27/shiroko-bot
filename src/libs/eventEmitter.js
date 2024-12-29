@@ -55,7 +55,7 @@ class EventEmitter {
 
       const { command: cmds, m, sock } = event;
       const command = this.events.has(cmds) ? cmds : "pass";
-      const { from, pushName, sender, body } = m;
+      const { from, pushName, sender, body, isGroup } = m;
       senders = sender;
       const prefix = config.options.prefix;
       const noPrefix = prefix.test(m.body) ? body.slice(1) : body;
@@ -239,7 +239,7 @@ class EventEmitter {
             ...(ephe && !sender.endsWith("@newsletter") ? { ephemeralExpiration: 86400 } : {})
           } : {}
         );
-        this.sys.image = async (teks, url, ephe = true, letter = true) => await sock.sendMessage(from, {
+        this.sys.image = async (teks, url, ephe = true, letter = true, forward = true) => await sock.sendMessage(from, {
           image: typeof url == "object" ? url : {
             url: url
           },
@@ -263,7 +263,7 @@ class EventEmitter {
           quoted: await global.ftroly(config.options.botName),
           ...(ephe && !sender.endsWith("@newsletter") ? { ephemeralExpiration: 86400 } : {})
         })
-        this.sys.video = async (teks, url, ephe = true, letter = true) => await sock.sendMessage(from, {
+        this.sys.video = async (teks, url, ephe = true, letter = true, forward = true) => await sock.sendMessage(from, {
           video: typeof url == "object" ? url : {
             url: url
           },
@@ -382,7 +382,10 @@ class EventEmitter {
         const typess = m.isQuoted ? m.quoted.type : m.type;
 
         if (!sender.endsWith("@newsletter")) {
+          if (plugin.group && !isGroup) return this.sys.text(messageInfo.msg.group);
+          if (plugin.admin && !m?.isAdmin && !global.users[sender].owner) return this.sys.text(messageInfo.msg.admin);
           if (global.users[sender].banned) return;
+          if (isGroup && global.groups[m.from].banned) return;
           if (global.users[sender].limit < 1 && !global.users[sender].premium) return this.sys.text(messageInfo.msg.limit);
           if (!prefix.test(m.body) && !plugin.pass && !plugin.cprefix.length) return;
           if (plugin.args && parseCommand.length <= 1) return this.sys.text(messageInfo.msg.query);
